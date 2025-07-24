@@ -1,10 +1,14 @@
 import { Injectable, ConflictException, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { UsersService } from './users.service';
+import { AuthService as JwtAuthService } from '../auth/auth.service';
 import * as bcrypt from 'bcrypt';
 
 @Injectable()
 export class AuthService {
-  constructor(private usersService: UsersService) {}
+  constructor(
+    private usersService: UsersService,
+    private jwtAuthService: JwtAuthService
+  ) {}
 
   async signup(email: string, password: string) {
     try {
@@ -15,10 +19,12 @@ export class AuthService {
 
       const hashedPassword = await bcrypt.hash(password, 10);
       const user = await this.usersService.createUserRecord(email, hashedPassword);
+      const token = this.jwtAuthService.generateToken(user);
 
       return {
         message: 'User created successfully',
         user,
+        token
       };
     } catch (error) {
       if (error instanceof ConflictException) {
@@ -37,10 +43,13 @@ export class AuthService {
         throw new UnauthorizedException('Invalid password');
       }
 
+      const token = this.jwtAuthService.generateToken(user);
+      const { password: _, ...userWithoutPassword } = user;
 
       return {
         message: 'Login successful',
-        user,
+        user: userWithoutPassword,
+        token
       };
     } catch (error) {
       if (error instanceof UnauthorizedException) {

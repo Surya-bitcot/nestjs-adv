@@ -1,4 +1,4 @@
-import { Entity , Column, PrimaryGeneratedColumn, AfterInsert , AfterRemove, AfterUpdate } from "typeorm";
+import { Entity, Column, PrimaryGeneratedColumn, AfterInsert, AfterRemove, AfterUpdate, CreateDateColumn, UpdateDateColumn } from "typeorm";
 
 @Entity()
 export class User {
@@ -11,6 +11,12 @@ export class User {
 
     @Column()
     password: string;
+
+    @CreateDateColumn()
+    createdAt: Date;
+
+    @UpdateDateColumn()
+    updatedAt: Date;
 
     @AfterInsert()
     logInsert() {
