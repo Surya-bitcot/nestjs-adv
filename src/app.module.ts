@@ -3,13 +3,15 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
-import { ReportsModule } from './reports/reports.module';
 import { dataSourceOptions } from './db/database';
+import { BusesModule } from './buses/buses.module';
+import { RoutesModule } from './routes/routes.module';
+import { BookingsModule } from './bookings/bookings.module';
 
 @Module({
   imports: [
     TypeOrmModule.forRoot(dataSourceOptions), 
-    UsersModule, ReportsModule
+    UsersModule, BusesModule, RoutesModule, BookingsModule, 
   ],
   controllers: [AppController],
   providers: [AppService],
