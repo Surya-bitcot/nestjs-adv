@@ -1,13 +1,12 @@
-import { ArrayNotEmpty, IsArray, IsInt, IsNumber, IsString } from "class-validator";
+import { ArrayNotEmpty, IsArray, IsInt, IsNumber, IsString, Min, Max } from "class-validator";
 
 export class CreateBus {
     @IsString()
-    id: string;
-
-    @IsString()
     name: string;
 
-    @IsNumber()
+    @IsInt()
+    @Min(1)
+    @Max(100)
     capacity: number;
 
     @IsArray()

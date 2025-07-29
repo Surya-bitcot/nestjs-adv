@@ -1,19 +1,19 @@
-import { IsInt, IsNotEmpty, IsString } from "class-validator";
+import { IsNotEmpty, IsString, IsNumberString, IsUUID } from "class-validator";
 
 export class CreateBooking {
-    @IsString()
+    @IsUUID()
     @IsNotEmpty()
-    busId: string
+    busId: string;
+
+    @IsUUID()
+    @IsNotEmpty()
+    routeId: string;
+
+    @IsNumberString()
+    @IsNotEmpty()
+    userId: string;
 
     @IsString()
     @IsNotEmpty()
-    routeId: string
-
-    @IsString()
-    @IsNotEmpty()
-    userId: string
-
-    @IsString()
-    @IsNotEmpty()
-    seatNumber: string
+    seatNumber: string;
 }

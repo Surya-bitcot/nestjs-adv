@@ -12,7 +12,7 @@ export class AuthService {
 
   async signup(email: string, password: string) {
     try {
-      const existingUser = await this.usersService.findByEmail(email).catch(() => null);
+      const existingUser = await this.usersService.findByEmailOptional(email);
       if (existingUser) {
         throw new ConflictException('User with this email already exists');
       }
@@ -45,8 +45,6 @@ export class AuthService {
 
       const token = this.jwtAuthService.generateToken(user);
       const { password: _, ...userWithoutPassword } = user;
-
-      console.log('User signed in successfully:', userWithoutPassword, token); 
 
       return {
         message: 'Login successful',

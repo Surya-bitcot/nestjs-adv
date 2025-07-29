@@ -21,7 +21,6 @@ import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { AuthGuard } from '@nestjs/passport';
 import { Serialize } from '../interceptors/serialize.interceptor';
 
-
 @Controller('auth')
 @Serialize(UserDto)
 export class UsersController {
@@ -31,35 +30,28 @@ export class UsersController {
     private readonly authServices: AuthServices
   ) {}
 
-
-  // Step 1: Redirect user to Google for authentication
   @Get('google')
   @UseGuards(AuthGuard('google'))
   async googleLogin(@Req() req) {
     // The guard will redirect to Google login page.
   }
 
-  // Step 2: Handle callback after Google authentication
   @Get('google/redirect')
   @UseGuards(AuthGuard('google'))
   googleLoginRedirect(@Req() req) {
-    console.log('Google Auth User:', req.user);
-    // At this point, the user is authenticated and `req.user` will contain the user data.
     return { message: 'User authenticated successfully', user: req.user };
   }
 
   @Post('/signup')
   async createUser(@Body() body: CreateUserDto) {
     const result = await this.authService.signup(body.email, body.password);
-    console.log('User created successfully:', result.user);
     return result.user;
   }
 
   @Post('/signin')
   async signinUser(@Body() body: SigninUserDto) {
     const result = await this.authService.signin(body.email, body.password);
-    console.log('User signed in successfully:', result.user);
-    return result.user;
+    return result;
   }
 
   @UseGuards(JwtAuthGuard)

@@ -1,20 +1,34 @@
-import { Body, Controller, Delete, Get, Param, Patch, Post } from '@nestjs/common';
+import { Body, Controller, Delete, Get, Param, Patch, Post, UseGuards, Req } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
 import { CreateBooking } from './dtos/create-booking.dto';
 import { UpdateBookingDto } from './dtos/update-booking.dto';
+import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('bookings')
+@UseGuards(JwtAuthGuard)
 export class BookingsController {
     constructor(private readonly bookingService: BookingsService) { }
 
     @Post()
-    createBooking(@Body() createBookingDto: CreateBooking) {
-        return this.bookingService.createBooking(createBookingDto)
+    createBooking(@Body() createBookingDto: CreateBooking, @Req() req) {
+        // Use authenticated user's ID
+        createBookingDto.userId = req.user.id.toString();
+        return this.bookingService.createBooking(createBookingDto);
+    }
+
+    @Get()
+    getAllBookings() {
+        return this.bookingService.getAllBookings();
+    }
+
+    @Get('my-bookings')
+    getMyBookings(@Req() req) {
+        return this.bookingService.getUserBookings(req.user.id);
     }
 
     @Get(':id')
-    getBooking(@Param(':id') id: string) {
-        return this.bookingService.getBooking(id)
+    getBooking(@Param('id') id: string) {
+        return this.bookingService.getBooking(id);
     }
 
     @Patch(':id')
@@ -24,8 +38,6 @@ export class BookingsController {
 
     @Delete(':id')
     cancelBooking(@Param('id') id: string) {
-        return this.bookingService.cancellBooking(id)
+        return this.bookingService.cancelBooking(id);
     }
-
-
 }
