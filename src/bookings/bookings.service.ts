@@ -2,8 +2,7 @@ import { ConflictException, Injectable, NotFoundException, BadRequestException }
 import { InjectRepository } from '@nestjs/typeorm';
 import { Booking } from './bookings.entity';
 import { Repository } from 'typeorm';
-import { Bus } from 'src/buses/buses.entity';
-import { Route } from 'src/routes/routes.entity';
+import { Trip } from 'src/trips/trip.entity';
 import { User } from 'src/users/user.entity';
 import { CreateBooking } from './dtos/create-booking.dto';
 import { UpdateBookingDto } from './dtos/update-booking.dto';
@@ -12,35 +11,31 @@ import { UpdateBookingDto } from './dtos/update-booking.dto';
 export class BookingsService {
     constructor(
         @InjectRepository(Booking) private bookingRepo: Repository<Booking>,
-        @InjectRepository(Bus) private busRepo: Repository<Bus>,
-        @InjectRepository(Route) private routeRepo: Repository<Route>,
+        @InjectRepository(Trip) private tripRepo: Repository<Trip>,
         @InjectRepository(User) private userRepo: Repository<User>
     ) { }
 
-    async createBooking(createBookingDto: CreateBooking) {
-        const { busId, routeId, seatNumber, userId } = createBookingDto;
+    async createBooking(userId: number, createBookingDto: CreateBooking) {
+        const { tripId, seatNumber } = createBookingDto;
 
-        // Validate that bus, route, and user exist
-        const bus = await this.busRepo.findOne({ where: { id: busId } });
-        if (!bus) {
-            throw new NotFoundException('Bus not found');
+        // Validate that trip and user exist
+        const trip = await this.tripRepo.findOne({ 
+            where: { id: tripId },
+            relations: ['bus', 'route']
+        });
+        if (!trip) {
+            throw new NotFoundException('Trip not found');
         }
 
-        const route = await this.routeRepo.findOne({ where: { id: routeId } });
-        if (!route) {
-            throw new NotFoundException('Route not found');
-        }
-
-        const user = await this.userRepo.findOne({ where: { id: parseInt(userId) } });
+        const user = await this.userRepo.findOne({ where: { id: userId } });
         if (!user) {
             throw new NotFoundException('User not found');
         }
 
-        // Check if seat is already booked
+        // Check if seat is already booked for this trip
         const existingBooking = await this.bookingRepo.findOne({
             where: { 
-                bus: { id: busId }, 
-                route: { id: routeId }, 
+                trip: { id: tripId }, 
                 seatNumber, 
                 status: 'CONFIRMED' 
             }
@@ -51,16 +46,24 @@ export class BookingsService {
         }
 
         // Validate seat number against bus capacity
-        if (parseInt(seatNumber) > bus.capacity || parseInt(seatNumber) < 1) {
+        if (parseInt(seatNumber) > trip.bus.capacity || parseInt(seatNumber) < 1) {
             throw new BadRequestException('Invalid seat number');
         }
 
+        // Check if trip is in the future
+        const departureDateTime = new Date(`${trip.departureDate} ${trip.departureTime}`);
+        if (departureDateTime <= new Date()) {
+            throw new BadRequestException('Cannot book seats for past trips');
+        }
+
         const booking = this.bookingRepo.create({
-            bus,
-            route,
+            trip,
+            bus: trip.bus,
+            route: trip.route,
             user,
             seatNumber,
-            status: 'CONFIRMED'
+            fare: trip.fare,
+            status: 'PENDING'
         });
 
         return this.bookingRepo.save(booking);

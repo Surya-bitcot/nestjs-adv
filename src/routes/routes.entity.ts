@@ -1,4 +1,5 @@
 import { Bus } from "src/buses/buses.entity";
+import { Stop } from "src/stops/stop.entity";
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn, CreateDateColumn, UpdateDateColumn } from "typeorm";
 
 @Entity()
@@ -23,6 +24,9 @@ export class Route {
 
     @OneToMany(() => Bus, (bus) => bus.route)
     buses: Bus[];
+
+    @OneToMany(() => Stop, (stop) => stop.route, { cascade: true })
+    stops: Stop[];
 
     @CreateDateColumn()
     createdAt: Date;

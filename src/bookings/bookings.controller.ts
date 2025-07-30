@@ -11,9 +11,7 @@ export class BookingsController {
 
     @Post()
     createBooking(@Body() createBookingDto: CreateBooking, @Req() req) {
-        // Use authenticated user's ID
-        createBookingDto.userId = req.user.id.toString();
-        return this.bookingService.createBooking(createBookingDto);
+        return this.bookingService.createBooking(req.user.id, createBookingDto);
     }
 
     @Get()
